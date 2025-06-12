@@ -33,59 +33,73 @@ if ( function_exists( 'error_reporting' ) ) {
          * This will be adapted in debug_mode() located in includes/load.php based on DEBUG.
          * @see https://www.php.net/manual/en/errorfunc.constants.php List of known error levels.
          */
-        // Isso configura o PHP para exibir ou registrar erros de núcleo, compilação, análise, e erros e avisos definidos pelo usuário, bem como erros recuperáveis.
         error_reporting( E_CORE_ERROR | E_CORE_WARNING | E_COMPILE_ERROR | E_ERROR | E_WARNING | E_PARSE | E_USER_ERROR | E_USER_WARNING | E_RECOVERABLE_ERROR );
 }
 
-// Tenta carregar o arquivo de configuração principal 'config.php';
-// Este arquivo contém as configurações específicas da sua instalação GamePress (como detalhes do banco de dados).
+/**
+ * If config.php exists in the GamePress root, or if it exists in the root and settings.php
+ * doesn't, load config.php. The secondary check for settings.php has the added benefit
+ * of avoiding cases where the current directory is a nested installation, e.g. / is GamePress(a)
+ * and /blog/ is GamePress(b).
+ *
+ * If neither set of conditions is true, initiate loading the setup process.
+ */
 if ( file_exists( ABSPATH . 'config.php' ) ) {
 
-        // Se 'config.php' for encontrado no diretório raiz (ABSPATH), ele é incluído.
+        /** The config file resides in ABSPATH */
         require_once ABSPATH . 'config.php';
 
-// Caso contrário, verifica uma alternativa: se 'config.php' existe no diretório raiz e 'gp-settings.php' (outro arquivo de configuração potencial) não existe.
 } elseif ( @file_exists( dirname( ABSPATH ) . '/config.php' ) && ! @file_exists( dirname( ABSPATH ) . '/settings.php' ) ) {
 
-        // Se a condição acima for verdadeira, inclui o 'config.php' do diretório raiz.
-        // O '@' antes de 'file_exists' suprime quaisquer avisos caso o arquivo não possa ser acessado.
+        /** The config file resides one level above ABSPATH but is not part of another installation */
         require_once dirname( ABSPATH ) . '/config.php';
-
-// Se nenhum dos arquivos 'gp-config.php' for encontrado nas localizações esperadas, isso indica que o GamePress não está configurado.        
+        
 } else {
 
-        // Define a constante 'INC' como 'includes', que é o diretório para os arquivos internos do GamePress.
+        // A config file doesn't exist.
+        
         define( 'INC', 'includes' );
-        // Inclui arquivos essenciais para iniciar o GamePress, como a versão, compatibilidade e funções de carregamento.
         require_once ABSPATH . INC . '/version.php';
         require_once ABSPATH . INC . '/compat.php';
         require_once ABSPATH . INC . '/load.php';
 
-        // Verifica as versões do PHP e MySQL para garantir que são compatíveis.
+        // Check for the required PHP version and for the MySQL extension or a database drop-in.
         check_php_mysql_versions();
 
-        // Corrige variáveis do servidor, se necessário, para garantir que o ambiente está configurado corretamente.
+        // Standardize $_SERVER variables across setups.
         fix_server_vars();
 
-        // Define o diretório de conteúdo do GamePress.
         define( 'CONTENT_DIR', ABSPATH . 'content' );
-        // Inclui o arquivo de funções principais.
         require_once ABSPATH . INC . '/functions.php';
 
-        // Constrói o caminho para o script de configuração inicial.
         $path = guess_url() . '/admin/setup-config.php';
 
-        // Verifica se a URL da requisição atual não contém 'setup-config'.
-        // Isso significa que o usuário não está na página de configuração, mas a configuração é necessária.
+        // Redirect to setup-config.php.
         if ( ! str_contains( $_SERVER['REQUEST_URI'], 'setup-config' ) ) {
-                // Redireciona o navegador para a página de configuração.
                 header( 'Location: ', $path );
-                exit; // Termina a execução do script após o redirecionamento.
+                exit;
         }
 
-        // Carrega as traduções antecipadamente, se aplicável.
-        load_translation_early();
+        load_translations_early();
 
-        // Exibe uma mensagem de erro e termina a execução do script.
+        // Die with an error message.
+        $die = '<p>' . sprintf(
+                /* translators: %s: config.php */
+                __( "There doesn't seem to be a %s file. It is needed before the installation can continue." ),
+                '<code>config.php</code>'
+        ) . '</p>';
+        $die .= '<p>' . sprintf(
+                /* translators: 1: Documentation URL, 2: config.php */
+                __( 'Need more help? <a href="%1$s">Read the support article on %2$s</a>' ),
+                __( 'https://support.com.br' ),
+                '<code>config.php</code>'
+        ) . '</p>';
+        $die .= '<p>' . sprintf(
+                /* translators: %s: config.php */
+                __( "You can create a %s file through a web interface, but this doesn't work for all server setups. The safest way is to manually create the file." ),
+                '<code>config.php</code>'
+        ) . '</p>';
+        $die .= '<p><a href="' . $path . '" class="button button-large">' . __( 'Create a Configuration File' ) . '</a></p>';
+        
         die( $die, __( 'GamePress &rsaquo; Error' ) );
 }
