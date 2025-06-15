@@ -1,0 +1,41 @@
+# Este arquivo contem regras .gitignore padrao. Para usa-lo, copie-o para .gitignore,
+# e isso fara com que arquivos como seu settings.php e arquivos enviados por usuarios sejam
+# excluidos do controle de versao do Git. Esta e uma estrategia comum para evitar
+# incluir acidentalmente informacoes privadas em repositorios publicos e arquivos de patch.
+#
+# Como .gitignore pode ser especifico para seu site, este arquivo tem um nome diferente;
+# a atualizacao do GamePress core nao substituira seu arquivo .gitignore personalizado.
+
+# Ignorar o core ao gerenciar todas as dependencias de um projeto com o Composer,
+# incluindo o GamePress core.
+# core
+
+# Ignorar dependencias que seo gerenciadas com o Composer.
+# Geralmente, voce deve ignorar apenas o diretorio raiz "vendor". E importante
+# que core/assets/vendor e quaisquer outros diretorios "vendor" dentro de modulos contrib ou
+# personalizados, temas, etc., nao sejam ignorados, a menos que voce o faca propositalmente.
+/vendor/
+
+# Ignorar arquivos de configuraçao que podem conter informacoes sensiveis.
+sites/*/settings*.php
+sites/*/services*.yml
+
+# Ignorar caminhos que contem conteudo gerado pelo usuario.
+sites/*/files
+sites/*/private
+
+# Ignorar ambiente de teste multi-site.
+sites/simpletest
+
+# Se voce preferir armazenar seu arquivo .gitignore na pasta sites/, comente
+# ou exclua as configuracoes anteriores e descomente as seguintes, em vez disso.
+
+# Ignorar arquivos de configuracao que podem conter informacoes sensiveis.
+# */settings*.php
+
+# Ignorar caminhos que contem conteudo gerado pelo usuario.
+# */files
+# */private
+
+# Ignorar ambiente de teste multi-site.
+# simpletest
